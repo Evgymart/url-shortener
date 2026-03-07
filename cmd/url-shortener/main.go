@@ -16,8 +16,12 @@ const (
 func main() {
 	cfg := config.MustLoad()
 	logger := setupLogger(cfg.Env)
+	if logger == nil {
+		panic("logger not set")
+	}
 	fmt.Println(cfg)
 	logger.Info("starting server", slog.String("env", cfg.Env))
+	logger.Debug("debug logs are enabled")
 }
 
 func setupLogger(env string) *slog.Logger {
