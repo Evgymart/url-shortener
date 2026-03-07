@@ -10,6 +10,10 @@ services:
     network_mode: "host"
     env_file:
       - .env
+    depends_on:
+      dragonfly:
+        condition: service_healthy
+
   dragonfly:
     image: 'docker.dragonflydb.io/dragonflydb/dragonfly:v1.37.0'
     ulimits:
@@ -17,5 +21,10 @@ services:
     network_mode: "host"
     volumes:
       - data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 volumes:
   data:
