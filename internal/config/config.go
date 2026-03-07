@@ -10,12 +10,21 @@ import (
 type Config struct {
 	Env        string     `yaml:"env"`
 	HTTPServer HTTPServer `yaml:"http_server"`
+	Dragonfly  Dragonfly  `yaml:"dragonfly"`
 }
 
 type HTTPServer struct {
 	Address     string        `yaml:"address"`
 	Timeout     time.Duration `yaml:"timeout"`
 	IdleTimeout time.Duration `yaml:"idle_timeout"`
+}
+
+type Dragonfly struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"db"`
+	PoolSize int    `yaml:"pool_size"`
 }
 
 func MustLoad() *Config {

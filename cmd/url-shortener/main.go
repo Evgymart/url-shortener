@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"urlshort/internal/config"
+	"urlshort/internal/storage/dragonfly"
 )
 
 const (
@@ -19,6 +20,16 @@ func main() {
 	if logger == nil {
 		panic("logger not set")
 	}
+
+	storage := dragonfly.New(cfg.Dragonfly)
+	if storage == nil {
+		panic("storage not set")
+	}
+
+	if storage.Ping() == nil {
+		logger.Info("Pong")
+	}
+
 	fmt.Println(cfg)
 	logger.Info("starting server", slog.String("env", cfg.Env))
 	logger.Debug("debug logs are enabled")
