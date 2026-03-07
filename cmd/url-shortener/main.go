@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 	"urlshort/internal/config"
 	"urlshort/internal/storage/dragonfly"
 )
@@ -26,7 +28,10 @@ func main() {
 		panic("storage not set")
 	}
 
-	if err := storage.Ping(); err == nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := storage.Ping(ctx); err == nil {
 		logger.Info("Pong")
 	} else {
 		panic("storage error " + err.Error())
