@@ -26,8 +26,10 @@ func main() {
 		panic("storage not set")
 	}
 
-	if storage.Ping() == nil {
+	if err := storage.Ping(); err == nil {
 		logger.Info("Pong")
+	} else {
+		panic("storage error " + err.Error())
 	}
 
 	fmt.Println(cfg)
