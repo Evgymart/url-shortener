@@ -4,10 +4,16 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"time"
 	"urlshort/internal/config"
+	"urlshort/internal/http-server/handlers/url/save"
+	middle "urlshort/internal/lib/middleware"
 	"urlshort/internal/storage/dragonfly"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 const (
@@ -40,6 +46,30 @@ func main() {
 	fmt.Println(cfg)
 	logger.Info("starting server", slog.String("env", cfg.Env))
 	logger.Debug("debug logs are enabled")
+
+	router := chi.NewRouter()
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middle.LoggerMiddleware(logger))
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
+
+	router.Post("/url", save.New(logger, storage))
+
+	logger.Info("starting server", slog.String("address", cfg.HTTPServer.Address))
+
+	srv := http.Server{
+		Addr:         cfg.HTTPServer.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.HTTPServer.Timeout,
+		WriteTimeout: cfg.HTTPServer.Timeout,
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	}
+
+	err := srv.ListenAndServe()
+	if err != nil {
+		logger.Error("Server error: " + err.Error())
+	}
 }
 
 func setupLogger(env string) *slog.Logger {
