@@ -15,7 +15,7 @@ func NewMockURLSaver() *MockURLSaver {
 	}
 }
 
-func (m *MockURLSaver) SaveURL(ctx context.Context, longUrl string, urlAlias string) error {
+func (m *MockURLSaver) SaveURL(_ context.Context, longUrl string, urlAlias string) error {
 	_, exists := m.SavedURLs[urlAlias]
 	if exists {
 		return storage.ErrUrlAlreadyExists
@@ -25,7 +25,7 @@ func (m *MockURLSaver) SaveURL(ctx context.Context, longUrl string, urlAlias str
 	return nil
 }
 
-func (m *MockURLSaver) GetURL(ctx context.Context, urlAlias string) (string, error) {
+func (m *MockURLSaver) GetURL(_ context.Context, urlAlias string) (string, error) {
 	url, exists := m.SavedURLs[urlAlias]
 	if !exists {
 		return "", storage.ErrUrlNotFound
@@ -33,11 +33,11 @@ func (m *MockURLSaver) GetURL(ctx context.Context, urlAlias string) (string, err
 	return url, nil
 }
 
-func (m *MockURLSaver) DeleteURL(ctx context.Context, urlAlias string) error {
+func (m *MockURLSaver) DeleteURL(_ context.Context, urlAlias string) error {
 	delete(m.SavedURLs, urlAlias)
 	return nil
 }
 
-func (m *MockURLSaver) Ping(ctx context.Context) error {
+func (m *MockURLSaver) Ping(_ context.Context) error {
 	return nil
 }
