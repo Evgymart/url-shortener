@@ -5,8 +5,8 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"urlshort/internal/lib/random"
 	"urlshort/internal/storage"
+	"urlshort/lib/random"
 
 	resp "urlshort/internal/http-server/handlers/api/response"
 
@@ -65,6 +65,7 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		err = urlSaver.SaveURL(r.Context(), req.URL, alias)
 		if errors.Is(err, storage.ErrUrlAlreadyExists) {
 			log.Info("url already exists", slog.String("url", req.URL))
+			render.Status(r, http.StatusConflict)
 			render.JSON(w, r, resp.Error("url already exists"))
 			return
 		}

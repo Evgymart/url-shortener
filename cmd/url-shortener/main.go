@@ -9,8 +9,8 @@ import (
 	"time"
 	"urlshort/internal/config"
 	"urlshort/internal/http-server/handlers/url/save"
-	middle "urlshort/internal/lib/middleware"
 	"urlshort/internal/storage/dragonfly"
+	middle "urlshort/lib/middleware"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
