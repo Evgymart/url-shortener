@@ -62,7 +62,7 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 			alias = random.NewRandomString(aliasLength)
 		}
 
-		err = urlSaver.SaveURL(r.Context(), req.URL, alias)
+		err = urlSaver.SaveURL(r.Context(), alias, req.URL)
 		if errors.Is(err, storage.ErrUrlAlreadyExists) {
 			log.Info("url already exists", slog.String("url", req.URL))
 			render.Status(r, http.StatusConflict)
@@ -72,6 +72,7 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 
 		if err != nil {
 			log.Error("failed to save url", err.Error())
+			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, resp.Error("failed to save url"))
 			return
 		}

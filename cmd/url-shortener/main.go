@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 	"urlshort/internal/config"
+	"urlshort/internal/http-server/handlers/url/redirect"
 	"urlshort/internal/http-server/handlers/url/save"
 	"urlshort/internal/storage/dragonfly"
 	middle "urlshort/lib/middleware"
@@ -55,6 +56,7 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	router.Post("/url", save.New(logger, storage))
+	router.Get("/{alias}", redirect.New(logger, storage))
 
 	logger.Info("starting server", slog.String("address", cfg.HTTPServer.Address))
 

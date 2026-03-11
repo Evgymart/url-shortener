@@ -1,4 +1,4 @@
-package save
+package storage
 
 import (
 	"context"
@@ -15,7 +15,7 @@ func NewMockURLSaver() *MockURLSaver {
 	}
 }
 
-func (m *MockURLSaver) SaveURL(_ context.Context, longUrl string, urlAlias string) error {
+func (m *MockURLSaver) SaveURL(_ context.Context, urlAlias string, longUrl string) error {
 	_, exists := m.SavedURLs[urlAlias]
 	if exists {
 		return storage.ErrUrlAlreadyExists
@@ -31,6 +31,10 @@ func (m *MockURLSaver) GetURL(_ context.Context, urlAlias string) (string, error
 		return "", storage.ErrUrlNotFound
 	}
 	return url, nil
+}
+
+func (m *MockURLSaver) GetUrl(ctx context.Context, urlAlias string) (string, error) {
+	return m.GetURL(ctx, urlAlias)
 }
 
 func (m *MockURLSaver) DeleteURL(_ context.Context, urlAlias string) error {

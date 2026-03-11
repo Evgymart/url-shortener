@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"urlshort/internal/http-server/handlers/url/save"
+	"urlshort/tests/internal/storage"
 )
 
 func CreateTestRequest(method, path string, body interface{}) (*http.Request, error) {
@@ -32,7 +33,7 @@ func ParseSaveURLResponse(resp *http.Response) (save.Response, error) {
 	return body, err
 }
 
-func SetupHandler(mockStorage *MockURLSaver) http.HandlerFunc {
+func SetupHandler(mockStorage *storage.MockURLSaver) http.HandlerFunc {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	return save.New(logger, mockStorage)
 }
