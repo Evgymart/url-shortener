@@ -18,7 +18,7 @@ func NewMockURLSaver() *MockURLSaver {
 func (m *MockURLSaver) SaveURL(_ context.Context, urlAlias string, longUrl string) error {
 	_, exists := m.SavedURLs[urlAlias]
 	if exists {
-		return storage.ErrUrlAlreadyExists
+		return storage.ErrAliasAlreadyTaken
 	}
 
 	m.SavedURLs[urlAlias] = longUrl

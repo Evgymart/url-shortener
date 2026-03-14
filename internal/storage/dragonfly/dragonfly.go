@@ -35,7 +35,7 @@ func (s *Storage) SaveURL(ctx context.Context, urlAlias string, longUrl string) 
 		return err
 	}
 	if exists > 0 {
-		return storage.ErrUrlAlreadyExists
+		return storage.ErrAliasAlreadyTaken
 	}
 	return s.rdb.Set(ctx, urlAlias, longUrl, 0).Err()
 }

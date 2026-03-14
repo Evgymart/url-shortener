@@ -72,8 +72,8 @@ func TestAlreadyExistsError(t *testing.T) {
 		t.Errorf("expected status Error, got %s", resp.Status)
 	}
 
-	if resp.Error != storage.ErrUrlAlreadyExists.Error() {
-		t.Errorf("Expected error %s, got %s", storage.ErrUrlAlreadyExists.Error(), resp.Error)
+	if resp.Error != storage.ErrAliasAlreadyTaken.Error() {
+		t.Errorf("Expected error %s, got %s", storage.ErrAliasAlreadyTaken.Error(), resp.Error)
 	}
 }
 
