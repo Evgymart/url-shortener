@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 	"urlshort/internal/config"
+	del "urlshort/internal/http-server/handlers/url/delete"
 	"urlshort/internal/http-server/handlers/url/redirect"
 	"urlshort/internal/http-server/handlers/url/save"
 	"urlshort/internal/storage/dragonfly"
@@ -54,10 +55,16 @@ func main() {
 	router.Use(middle.LoggerMiddleware(logger))
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
+	router.Route("/api", func(r chi.Router) {
+		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
+			cfg.Auth.User: cfg.Auth.Password,
+		}))
 
-	router.Post("/url", save.New(logger, storage))
+		r.Post("/url", save.New(logger, storage))
+		r.Delete("/url", del.New(logger, storage))
+	})
+
 	router.Get("/{alias}", redirect.New(logger, storage))
-
 	logger.Info("starting server", slog.String("address", cfg.HTTPServer.Address))
 
 	srv := http.Server{

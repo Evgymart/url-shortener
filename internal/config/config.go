@@ -11,6 +11,7 @@ type Config struct {
 	Env        string     `yaml:"env"`
 	HTTPServer HTTPServer `yaml:"http_server"`
 	Dragonfly  Dragonfly  `yaml:"dragonfly"`
+	Auth       Auth       `yaml:"auth"`
 }
 
 type HTTPServer struct {
@@ -25,6 +26,11 @@ type Dragonfly struct {
 	Password string `yaml:"password"`
 	DB       int    `yaml:"db"`
 	PoolSize int    `yaml:"pool_size"`
+}
+
+type Auth struct {
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
 }
 
 func MustLoad() *Config {
