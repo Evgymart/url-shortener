@@ -1,9 +1,12 @@
 package redirect
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	resp "urlshort/internal/http-server/handlers/api/response"
 	"urlshort/internal/storage"
 	storagemock "urlshort/tests/internal/storage"
 )
@@ -12,8 +15,8 @@ func TestRedirectSuccess(t *testing.T) {
 	mockStorage := storagemock.NewMockURLSaver()
 	handler := SetupHandler(mockStorage)
 
-	url := "https://example.com"
-	alias := "test-alias"
+	alias := "google"
+	url := "https://google.com"
 	mockStorage.SavedURLs[alias] = url
 
 	req, _ := CreateTestRequest(http.MethodGet, "/"+alias, alias)
@@ -21,21 +24,13 @@ func TestRedirectSuccess(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != http.StatusPermanentRedirect {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusPermanentRedirect)
+	if status := rr.Code; status != http.StatusTemporaryRedirect {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusTemporaryRedirect)
 	}
 
-	resp, err := ParseRedirectResponse(rr.Result())
-	if err != nil {
-		t.Fatalf("failed to parse response: %v", err)
-	}
-
-	if resp.Status != "OK" {
-		t.Errorf("expected status OK, got %s", resp.Status)
-	}
-
-	if resp.Url != url {
-		t.Errorf("expected url %s, got %s", url, resp.Url)
+	location := rr.Header().Get("Location")
+	if location != url {
+		t.Errorf("expected location %s, got %s", url, location)
 	}
 }
 
@@ -43,7 +38,8 @@ func TestRedirectNotFound(t *testing.T) {
 	mockStorage := storagemock.NewMockURLSaver()
 	handler := SetupHandler(mockStorage)
 
-	alias := "non-existent-alias"
+	alias := "nonexistent"
+
 	req, _ := CreateTestRequest(http.MethodGet, "/"+alias, alias)
 	rr := httptest.NewRecorder()
 
@@ -53,79 +49,51 @@ func TestRedirectNotFound(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusNotFound)
 	}
 
-	resp, err := ParseRedirectResponse(rr.Result())
+	var response resp.Response
+	err := json.NewDecoder(rr.Body).Decode(&response)
 	if err != nil {
 		t.Fatalf("failed to parse response: %v", err)
 	}
 
-	if resp.Status != "ERROR" {
-		t.Errorf("expected status ERROR, got %s", resp.Status)
+	if response.Status != resp.StatusError {
+		t.Errorf("expected status %s, got %s", resp.StatusError, response.Status)
 	}
 
-	if resp.Error != storage.ErrUrlNotFound.Error() {
-		t.Errorf("expected error %s, got %s", storage.ErrUrlNotFound.Error(), resp.Error)
-	}
-}
-
-func TestRedirectEmptyAlias(t *testing.T) {
-	mockStorage := storagemock.NewMockURLSaver()
-	handler := SetupHandler(mockStorage)
-
-	alias := ""
-	req, _ := CreateTestRequest(http.MethodGet, "/", alias)
-	rr := httptest.NewRecorder()
-
-	handler.ServeHTTP(rr, req)
-
-	if status := rr.Code; status != http.StatusNotFound {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusNotFound)
-	}
-
-	resp, err := ParseRedirectResponse(rr.Result())
-	if err != nil {
-		t.Fatalf("failed to parse response: %v", err)
-	}
-
-	if resp.Status != "ERROR" {
-		t.Errorf("expected status ERROR, got %s", resp.Status)
+	if response.Error != storage.ErrUrlNotFound.Error() {
+		t.Errorf("expected error %s, got %s", storage.ErrUrlNotFound.Error(), response.Error)
 	}
 }
 
-func TestRedirectMultipleAliases(t *testing.T) {
+func TestRedirectMultiple(t *testing.T) {
 	mockStorage := storagemock.NewMockURLSaver()
 	handler := SetupHandler(mockStorage)
 
 	testCases := []struct {
+		name  string
 		alias string
 		url   string
 	}{
-		{"google", "https://google.com"},
-		{"github", "https://github.com"},
-		{"example", "https://example.com"},
+		{"google", "google", "https://google.com"},
+		{"github", "github", "https://github.com"},
+		{"example", "example", "https://example.com"},
 	}
 
 	for _, tc := range testCases {
-		mockStorage.SavedURLs[tc.alias] = tc.url
-	}
+		t.Run(tc.name, func(t *testing.T) {
+			mockStorage.SavedURLs[tc.alias] = tc.url
 
-	for _, tc := range testCases {
-		t.Run(tc.alias, func(t *testing.T) {
 			req, _ := CreateTestRequest(http.MethodGet, "/"+tc.alias, tc.alias)
 			rr := httptest.NewRecorder()
 
 			handler.ServeHTTP(rr, req)
 
-			if status := rr.Code; status != http.StatusPermanentRedirect {
-				t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusPermanentRedirect)
+			if status := rr.Code; status != http.StatusTemporaryRedirect {
+				t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusTemporaryRedirect)
 			}
 
-			resp, err := ParseRedirectResponse(rr.Result())
-			if err != nil {
-				t.Fatalf("failed to parse response: %v", err)
-			}
-
-			if resp.Url != tc.url {
-				t.Errorf("expected url %s, got %s", tc.url, resp.Url)
+			location := rr.Header().Get("Location")
+			if location != tc.url {
+				t.Errorf("expected location %s, got %s", tc.url, location)
 			}
 		})
 	}

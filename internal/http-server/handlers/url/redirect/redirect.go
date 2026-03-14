@@ -13,11 +13,6 @@ import (
 	"github.com/go-chi/render"
 )
 
-type Response struct {
-	resp.Response
-	Url string
-}
-
 type URLGetter interface {
 	GetUrl(ctx context.Context, urlAlias string) (string, error)
 }
@@ -47,10 +42,6 @@ func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
 		}
 
 		log.Info("url redirected", slog.String("url", url))
-		render.Status(r, http.StatusPermanentRedirect)
-		render.JSON(w, r, Response{
-			Response: resp.OK(),
-			Url:      url,
-		})
+		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	}
 }
