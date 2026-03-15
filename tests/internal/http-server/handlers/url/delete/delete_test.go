@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	del "urlshort/internal/http-server/handlers/url/delete"
 	storagemock "urlshort/tests/internal/storage"
 )
 
@@ -14,12 +13,7 @@ func TestDeleteURLSuccess(t *testing.T) {
 	alias := "alias"
 	url := "https://example.com"
 	mockStorage.SavedURLs[alias] = url
-
-	reqBody := del.Request{
-		Alias: alias,
-	}
-
-	req, _ := CreateTestRequest(http.MethodDelete, "/url", reqBody)
+	req, _ := CreateTestRequest(http.MethodDelete, "/url/"+alias, alias)
 	rr := httptest.NewRecorder()
 
 	handler.ServeHTTP(rr, req)

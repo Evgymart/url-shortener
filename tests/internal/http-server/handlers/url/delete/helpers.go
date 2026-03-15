@@ -1,7 +1,7 @@
 package delete
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"log/slog"
@@ -10,21 +10,16 @@ import (
 	resp "urlshort/internal/http-server/handlers/api/response"
 	del "urlshort/internal/http-server/handlers/url/delete"
 	"urlshort/tests/internal/storage"
+
+	"github.com/go-chi/chi/v5"
 )
 
-func CreateTestRequest(method, path string, body interface{}) (*http.Request, error) {
-	var bodyReader io.Reader
+func CreateTestRequest(method, path, alias string) (*http.Request, error) {
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add("alias", alias)
 
-	if body != nil {
-		jsonBody, err := json.Marshal(body)
-		if err != nil {
-			return nil, err
-		}
-		bodyReader = bytes.NewReader(jsonBody)
-	}
-
-	req := httptest.NewRequest(method, path, bodyReader)
-	req.Header.Set("Content-Type", "application/json")
+	req := httptest.NewRequest(method, path, nil)
+	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 	return req, nil
 }
 
